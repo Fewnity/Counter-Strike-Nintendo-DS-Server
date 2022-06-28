@@ -1,0 +1,41 @@
+﻿// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2021-2022, Fewnity - Grégory Machefer
+//
+// This file is part of the server of Counter Strike Nintendo DS Multiplayer Edition (CS:DS)
+
+namespace Counter_Strike_Server
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            //Get os info
+            Settings.ReadOsInfo();
+            Logger.CreateLogFile(System.AppDomain.CurrentDomain.BaseDirectory);
+
+            //Load game data
+            MapManager.LoadMapsData();
+            PartyManager.SetAllPartyModesData();
+            ShopManager.AddAllShopElements();
+
+            //Start server
+            ConnectionManager.StartServer();
+        }
+
+        /// <summary>
+        /// Re-maps a number from one range to another.<br></br>
+        /// <see href="https://www.arduino.cc/reference/en/language/functions/math/map/">Arduino doc here!</see>
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="in_min"></param>
+        /// <param name="in_max"></param>
+        /// <param name="out_min"></param>
+        /// <param name="out_max"></param>
+        /// <returns></returns>
+        public static double map(double x, double in_min, double in_max, double out_min, double out_max)
+        {
+            return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+        }
+    }
+}

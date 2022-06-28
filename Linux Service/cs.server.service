@@ -1,0 +1,14 @@
+[Unit]
+Description=Counter Strike DS Server
+After=network.target
+
+[Service]
+#Type=Simple
+Type=forking
+ExecStart=PATH_TO_SET/start_cs_server.sh
+ExecStop=/usr/bin/tmux kill-session -t cs_server
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
