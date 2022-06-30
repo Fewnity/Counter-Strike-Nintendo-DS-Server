@@ -43,7 +43,7 @@ Command example : "status maintenance"
 ### Settings :
 - **Logging** : Log every errors in the cs_log/cs_log.txt file in the executable folder
 - **Security** : if enabled, block unofficials game builds
-- **console** : Print all sent and receivied data in the console
+- **Console** : Print all sent and receivied data in the console
 
 ## Todo :
 - [ ] Rework the structure of the server (Avoid static functions, make client.SetName(name) instead of PlayerManager.SetName(client, name)), or something better for clarity.
