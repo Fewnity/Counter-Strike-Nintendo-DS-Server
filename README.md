@@ -31,7 +31,7 @@ I think it's a misake to do static functions like PlayerManager.SetName(client, 
 - To access to the server console, write **"tmux attach-session -t cs_server"**
 - To quit the console without stoping the server : Ctrl + b then d
 
-Note : The used ip is automaticaly found by the server and showed in the console.
+Note : The used ip is automatically found by the server and showed in the console.
 
 ### Commands :
 Command example : "status maintenance"
