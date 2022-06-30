@@ -91,8 +91,8 @@ namespace Counter_Strike_Server
         /// <exception cref="Exception"></exception>
         public static void SetName(Client client, string name)
         {
-            if (string.IsNullOrEmpty(name) || name.Length > 14)
-            //if (string.IsNullOrWhiteSpace(name) || name.Length > 14) //TODO enable this, but check in game if the name is only space
+            //if (string.IsNullOrEmpty(name) || name.Length > 14)
+            if (string.IsNullOrWhiteSpace(name) || name.Length > 14) //TODO enable this, but check in game if the name is only space
             {
                 ConnectionManager.SendError(client, NetworkDataManager.ErrorType.SaveCorrupted);
                 throw new Exception("Name is too long or empty.");

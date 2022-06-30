@@ -45,6 +45,11 @@ Command example : "status maintenance"
 - **Security** : if enabled, block unofficials game builds
 - **Console** : Print all sent and receivied data in the console
 
+## Server status web page :
+- Set the Counter Strike Server IP in the index.php  at line 20
+- Put the cs_status folder in your server ex : [Wamp](https://www.wampserver.com/) or [Lamp](https://doc.ubuntu-fr.org/lamp)
+- Install the websocket support to your server
+
 ## Todo :
 - [ ] Rework the structure of the server (Avoid static functions, make client.SetName(name) instead of PlayerManager.SetName(client, name)), or something better for clarity.
 - [ ] Improve security

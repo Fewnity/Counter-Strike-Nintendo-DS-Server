@@ -129,7 +129,7 @@ namespace Counter_Strike_Server
                                 throw new Exception("Wrong status id");
 
                             Settings.serverStatus = (ServerStatus)int.Parse(userInput[1]);
-                            Console.WriteLine($"Server status set to : {Enum.GetName(typeof(ServerStatus), Settings.serverStatus).ToString()}");
+                            Console.WriteLine($"Server status set to : {Enum.GetName(typeof(ServerStatus), Settings.serverStatus)}");
                         }
                     }
                     else if (userInput[0] == "disable" || userInput[0] == "enable") //Change the server status
@@ -145,6 +145,10 @@ namespace Counter_Strike_Server
                         else if (userInput[1] == "console")
                         {
                             Settings.ENABLE_CONSOLE_PRINT = enable;
+                        }
+                        else
+                        {
+                            throw new Exception("Wrong command argument");
                         }
                     }
                     else
@@ -167,10 +171,10 @@ namespace Counter_Strike_Server
 
         private static void PrintHelpCommand()
         {
-            Console.WriteLine("\ncommand_name [param] : utility.\n" +
-                           "stop : stop the server.\n" +
-                           "status [online/maintenance or 0/1] : set the server status.\n" +
-                           "disable/enable [logging/security/console] : disable or enable setting." +
+            Console.WriteLine("\ncommand_name [param] : Utility.\n" +
+                           "stop : Stop the server.\n" +
+                           "status [online/maintenance or 0/1] : Set the server status.\n" +
+                           "disable/enable [logging/security/console] : Disable or enable a setting." +
                            "\n");
         }
 
