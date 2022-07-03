@@ -18,7 +18,7 @@ namespace Counter_Strike_Server
         /// <param name="client"></param>
         public static void SendBombPlacing(Client client)
         {
-            if (((client.haveBomb && client.team== teamEnum.TERRORISTS) || client.team == teamEnum.COUNTERTERRORISTS) && PhysicsManager.CheckBombZone(client.Position, MapManager.allMaps[(int)client.clientParty.mapId]))
+            if (!client.isDead && ((client.haveBomb && client.team== teamEnum.TERRORISTS) || client.team == teamEnum.COUNTERTERRORISTS) && PhysicsManager.CheckBombZone(client.Position, MapManager.allMaps[(int)client.clientParty.mapId]))
                 Call.CreateCall($"BOMBPLACING;{client.id}", client.clientParty.allConnectedClients, client);
         }
 
@@ -47,7 +47,7 @@ namespace Counter_Strike_Server
         public static void PlaceBomb(Client client, int xPos, int yPos, int zPos, int angle, bool drop)
         {
             Party party = client.clientParty;
-            if (client.haveBomb)
+            if (client.haveBomb && (drop || !client.isDead))
             {
                 bool CanPut  = false;
                 if (drop)
@@ -91,7 +91,6 @@ namespace Counter_Strike_Server
                     //Remove client's bomb
                     SetBombForAPlayer(client, false);
                 }
-               
             }
         }
 
@@ -131,7 +130,7 @@ namespace Counter_Strike_Server
             Party party = client.clientParty;
 
             //Security check
-            if (client.team == teamEnum.COUNTERTERRORISTS && party.roundState == RoundState.PLAYING && party.bombSet && PhysicsManager.CheckBombDefuseZone(client.Position, client.clientParty))
+            if (!client.isDead && client.team == teamEnum.COUNTERTERRORISTS && party.roundState == RoundState.PLAYING && party.bombSet && PhysicsManager.CheckBombDefuseZone(client.Position, client.clientParty))
             {
                 party.counterScore++;
 
@@ -144,7 +143,7 @@ namespace Counter_Strike_Server
                 PartyManager.SendText(PartyManager.TextEnum.BOMB_DEFUSED, party);
 
                 //Send score to all clients
-                Call.CreateCall($"SCORE;{party.counterScore};{party.terroristsScore}", party.allConnectedClients);
+                PartyManager.SendScore(party);
                 Call.CreateCall("BOMBDEFUSE", party.allConnectedClients);
 
                 //Add money to defuser client and to teams
@@ -168,7 +167,7 @@ namespace Counter_Strike_Server
             Party party = client.clientParty;
 
             //Security check
-            if (client.team == teamEnum.TERRORISTS && party.bombDropped && PhysicsManager.CheckBombDefuseZone(client.Position, client.clientParty))
+            if (!client.isDead && client.team == teamEnum.TERRORISTS && party.bombDropped && PhysicsManager.CheckBombDefuseZone(client.Position, client.clientParty))
             {
                 SetBombForAPlayer(client, true);
                 party.bombDropped = false;

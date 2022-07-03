@@ -16,7 +16,6 @@ namespace Counter_Strike_Server
 
     public class MapData
     {
-        //public string name;
         public mapEnum mapId;
         public int terroristsSpawnsAngle;
         public int counterTerroristsSpawnsAngle;

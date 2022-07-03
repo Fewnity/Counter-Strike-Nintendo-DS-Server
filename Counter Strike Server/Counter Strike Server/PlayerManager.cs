@@ -31,12 +31,11 @@ namespace Counter_Strike_Server
         /// <exception cref="Exception"></exception>
         public static void SetPosition(Client client, string xPos, string yPos, string zPos, string angle, string cameraAngle)
         {
+            //If the player is playing
+            if (!client.isDead && client.team != teamEnum.SPECTATOR && client.clientParty.roundState != RoundState.WAIT_START)
+            {
             //Parse data
             Vector3Int newPos = new Vector3Int(int.Parse(xPos), int.Parse(yPos), int.Parse(zPos));
-
-            //If the player is playing
-            if (client.team != teamEnum.SPECTATOR && client.clientParty.roundState != RoundState.WAIT_START)
-            {
                 client.angle = int.Parse(angle);
 
                 //Get camera angle
@@ -206,12 +205,12 @@ namespace Counter_Strike_Server
                     }
 
                     //Send kill text
-                    Call.CreateCall($"TEXTPLAYER;{HittedClient.id};{killerClient.id};{0}", currentParty.allConnectedClients);
+                    SendTextPlayer(HittedClient, killerClient, 0);
                 }
                 else
                 {
                     //Send kill text
-                    Call.CreateCall($"TEXTPLAYER;{HittedClient.id};{-1};{0}", currentParty.allConnectedClients);
+                    SendTextPlayer(HittedClient, null, 0);
                 }
 
                 SendKillCountAndDeathCount(HittedClient);
@@ -223,6 +222,25 @@ namespace Counter_Strike_Server
             }
         }
 
+        /// <summary>
+        /// Send a notification based on one or players
+        /// </summary>
+        /// <param name="clientA"></param>
+        /// <param name="clientB"></param>
+        /// <param name="textId"></param>
+        public static void SendTextPlayer(Client clientA, Client clientB, int textId)
+        {
+            int clientAId = clientA != null ? clientA.id : -1;
+            int clientBId = clientB != null ? clientB.id : -1;
+            Party party = clientA != null ? clientA.clientParty : clientB.clientParty;
+            Call.CreateCall($"TEXTPLAYER;{clientAId};{clientBId};{textId}", party.allConnectedClients);
+        }
+
+        /// <summary>
+        /// Called after killing a player
+        /// </summary>
+        /// <param name="currentParty"></param>
+        /// <param name="hittedClient"></param>
         public static void OnPlayerKilled(Party currentParty, Client hittedClient)
         {
             if (currentParty.roundState == RoundState.PLAYING)//If the player is killed during the party

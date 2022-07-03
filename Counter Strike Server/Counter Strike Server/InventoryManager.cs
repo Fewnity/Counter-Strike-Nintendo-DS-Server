@@ -49,16 +49,28 @@ namespace Counter_Strike_Server
             SendClientCurrentGunToClients(client);
         }
 
+        /// <summary>
+        /// Send client current gun to all clients
+        /// </summary>
+        /// <param name="client"></param>
         public static void SendClientCurrentGunToClients(Client client)
         {
             Call.CreateCall($"CURGUN;{client.id};{client.currentGunInInventory}", client.clientParty.allConnectedClients, client);
         }
 
+        /// <summary>
+        /// Send client gun reloaded
+        /// </summary>
+        /// <param name="client"></param>
         public static void SendReloaded(Client client)
         {
             Call.CreateCall($"RELOADED;{client.id};{0}", client.clientParty.allConnectedClients, client);
         }
 
+        /// <summary>
+        /// Reload gun of a client
+        /// </summary>
+        /// <param name="client"></param>
         public static void ReloadGun(Client client)
         {
             // Check if the weapon in the player hands is a gun
@@ -80,6 +92,11 @@ namespace Counter_Strike_Server
             }
         }
 
+        /// <summary>
+        /// Reset gun ammo of a gun
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="inventoryIndex"></param>
         public static void ResetGunAmmo(Client client, int inventoryIndex)
         {
             if (inventoryIndex < 1 || inventoryIndex > 2)
@@ -90,6 +107,10 @@ namespace Counter_Strike_Server
             client.AllAmmoMagazine[ammoIndex].TotalAmmoCount = ((Gun)ShopManager.allShopElements[client.allGunsInInventory[inventoryIndex]]).maxAmmoCount;
         }
 
+        /// <summary>
+        /// Reset all client guns ammo
+        /// </summary>
+        /// <param name="client"></param>
         public static void ResetGunsAmmo(Client client)
         {
             for (int ammoIndex = 0; ammoIndex < 2; ammoIndex++)
@@ -103,6 +124,10 @@ namespace Counter_Strike_Server
             }
         }
 
+        /// <summary>
+        /// Send clients current gun
+        /// </summary>
+        /// <param name="client"></param>
         public static void SendClientsCurrentGunToClient(Client client)
         {
             for (int i = 0; i < client.clientParty.allConnectedClients.Count; i++)
@@ -112,6 +137,10 @@ namespace Counter_Strike_Server
             }
         }
 
+        /// <summary>
+        /// Send client ammo to clients
+        /// </summary>
+        /// <param name="client"></param>
         public static void SendClientsAmmoToClient(Client client)
         {
             for (int i = 0; i < client.clientParty.allConnectedClients.Count; i++)
@@ -122,6 +151,10 @@ namespace Counter_Strike_Server
             }
         }
 
+        /// <summary>
+        /// Clear client inventory
+        /// </summary>
+        /// <param name="client"></param>
         public static void ClearInventory(Client client)
         {
             //Remove equipment

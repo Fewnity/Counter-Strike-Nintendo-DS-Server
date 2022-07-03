@@ -6,6 +6,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace Counter_Strike_Server
 {
@@ -23,7 +24,7 @@ namespace Counter_Strike_Server
             int playerId = int.Parse(hittedPlayerId);
             bool isHeadShot = int.Parse(isHeadShotString) == 1;
             bool isLegShot = int.Parse(isLegShotString) == 1;
-            float distance = float.Parse(distanceString);
+            float distance = float.Parse(distanceString, CultureInfo.InvariantCulture);
             MakeHit(client, playerId, isHeadShot, isLegShot, distance);
         }
 
@@ -37,7 +38,7 @@ namespace Counter_Strike_Server
         /// <exception cref="Exception"></exception>
         public static void MakeHit(Client client, int hittedPlayerId, bool isHeadShot, bool isLegShot, float distance)
         {
-            if (client.cancelNextHit)
+            if (client.cancelNextHit || client.isDead)
             {
                 return;
             }
@@ -47,7 +48,8 @@ namespace Counter_Strike_Server
                 ConnectionManager.SendError(client, NetworkDataManager.ErrorType.Null);
                 throw new Exception("isHeadShot equals 1 and equals isLegShot");
             }
-            distance = MathF.Abs(distance);
+
+            distance = Math.Abs(distance);
 
             Client HittedClient = NetworkDataManager.FindClientById(client.clientParty, hittedPlayerId);
 
@@ -58,6 +60,7 @@ namespace Counter_Strike_Server
 
             //Get gun damage
             int Damage = (int)(usedGun.damage * Math.Pow(usedGun.damageFalloff, distance / 500.0));
+
             int hitType = 0;
             if (isHeadShot)
             {
@@ -77,7 +80,7 @@ namespace Counter_Strike_Server
             if (client.allGunsInInventory[client.currentGunInInventory] == 0)
                 hitType = 3;
 
-            Call.CreateCall($"HITSOUND;{client.id};{hittedPlayerId};{hitType}", client.clientParty.allConnectedClients, client);
+            SendHitSound(client, hittedPlayerId, hitType);
 
             if (client.clientParty.partyMode.teamDamage || HittedClient.team != client.team)
             {
@@ -95,17 +98,26 @@ namespace Counter_Strike_Server
                         }
                         else // Or reduce armor durability
                         {
-                            Debug.WriteLine($"ARMOR {HittedClient.armor} next : {HittedClient.armor - (oldDamage - Damage)}");
                             HittedClient.armor -= oldDamage - Damage;
                             if (HittedClient.armor < 0)
                                 HittedClient.armor = 0;
                         }
                     }
-                    Debug.WriteLine($"health {HittedClient.health} next : {HittedClient.health - Damage}");
                     HittedClient.health -= Damage;
                     PlayerManager.CheckAfterDamage(client, HittedClient, true, true);
                 }
             }
+        }
+
+        /// <summary>
+        /// Send player hit sound
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="hittedPlayerId"></param>
+        /// <param name="hitType"></param>
+        public static void SendHitSound(Client client, int hittedPlayerId,int hitType)
+        {
+            Call.CreateCall($"HITSOUND;{client.id};{hittedPlayerId};{hitType}", client.clientParty.allConnectedClients, client);
         }
 
         /// <summary>
@@ -115,6 +127,10 @@ namespace Counter_Strike_Server
         public static void SendShoot(Client client)
         {
             client.cancelNextHit = false;
+
+            if (client.isDead)
+                return;
+
             int gunId = client.allGunsInInventory[client.currentGunInInventory];
             if ((client.currentGunInInventory == 1 || client.currentGunInInventory == 2) && client.AllAmmoMagazine[client.currentGunInInventory - 1].AmmoCount > 0)
                 client.AllAmmoMagazine[client.currentGunInInventory - 1].AmmoCount--;
@@ -138,11 +154,6 @@ namespace Counter_Strike_Server
                 //if (client.currentGunInInventory != 0)
                 //NetworkDataManager.PrintMessage($"{client.id} Gun : {client.currentGunInInventory}, Ammo {client.AllAmmoMagazine[client.currentGunInInventory - 1].AmmoCount}; Total Ammo {client.AllAmmoMagazine[client.currentGunInInventory - 1].TotalAmmoCount}\n");
             }
-            else
-            {
-                Debug.WriteLine("HIT CANCELLED");
-                //NetworkDataManager.PrintError("HIT CANCELLED");
-            }
         }
 
         /// <summary>
@@ -154,10 +165,12 @@ namespace Counter_Strike_Server
         /// <param name="client">Client</param>
         public static void SendWallHit(string xPos, string yPos, string zPos, Client client)
         {
+            if (client.isDead)
+                return;
+
             int x = int.Parse(xPos);
             int y = int.Parse(yPos);
             int z = int.Parse(zPos);
-
             Call.CreateCall($"WALLHIT;{x};{y};{z}", client.clientParty.allConnectedClients, client);
         }
     }

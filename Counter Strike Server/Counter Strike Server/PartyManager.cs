@@ -247,7 +247,7 @@ namespace Counter_Strike_Server
                             }
 
                             //Send round state to all clients
-                            sendPartyRound(currentParty);
+                            SendPartyRound(currentParty);
                         }
                         else if (!currentParty.partyStarted) //If the party is not started
                         {
@@ -391,7 +391,7 @@ namespace Counter_Strike_Server
             }
 
             MoneyManager.SendMoney(currentParty);
-            sendPartyRound(currentParty);
+            SendPartyRound(currentParty);
             BombManager.SetBombForARandomPlayer(currentParty);
 
             //Send party has started to all clients
@@ -425,7 +425,7 @@ namespace Counter_Strike_Server
                 party.partyTimer = quitPartyTime;
                 party.roundState = RoundState.END;
                 //Send round state to all clients
-                sendPartyRound(party);
+                SendPartyRound(party);
             }
             else if (party.partyMode.middlePartyTeamSwap && party.terroristsScore + party.counterScore == Math.Floor(party.partyMode.maxRound / 2f)) //If the party needs to swap
             {
@@ -457,7 +457,7 @@ namespace Counter_Strike_Server
         /// Send party current round to all clients
         /// </summary>
         /// <param name="party">Party</param>
-        public static void sendPartyRound(Party party)
+        public static void SendPartyRound(Party party)
         {
             Call.CreateCall($"PartyRound;{(int)party.roundState}", party.allConnectedClients);
         }
@@ -466,7 +466,7 @@ namespace Counter_Strike_Server
         /// Send party current round to a client
         /// </summary>
         /// <param name="client">Client</param>
-        public static void sendPartyRound(Client client)
+        public static void SendPartyRound(Client client)
         {
             Call.CreateCall($"PartyRound;{(int)client.clientParty.roundState}", client);
         }

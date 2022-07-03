@@ -106,7 +106,7 @@ namespace Counter_Strike_Server
 
                     if (userInput[0] == "help") //Stop the server
                     {
-                        PrintHelpCommand();
+                        PrintCommandsList();
                     }
                     else if (userInput[0] == "stop") //Stop the server
                     {
@@ -138,7 +138,8 @@ namespace Counter_Strike_Server
                         if (userInput[1] == "logging")
                         {
                             Settings.ENABLE_LOGGING = enable;
-                        }else if (userInput[1] == "security")
+                        }
+                        else if (userInput[1] == "security")
                         {
                             Settings.ENABLE_SECURITY_KEY = enable;
                         }
@@ -164,12 +165,19 @@ namespace Counter_Strike_Server
                 }
             }
         }
+
+        /// <summary>
+        /// Print the help message
+        /// </summary>
         private static void PrintAskHelp()
         {
             Console.WriteLine("Type 'help' to get commands list");
         }
 
-        private static void PrintHelpCommand()
+        /// <summary>
+        /// Print commands list
+        /// </summary>
+        private static void PrintCommandsList()
         {
             Console.WriteLine("\ncommand_name [param] : Utility.\n" +
                            "stop : Stop the server.\n" +
@@ -327,6 +335,10 @@ namespace Counter_Strike_Server
             return false;
         }
 
+        /// <summary>
+        /// Equilibrate teams
+        /// </summary>
+        /// <param name="party"></param>
         public static void EquilibrateTeams(Party party)
         {
             party.needTeamEquilibration = false;
@@ -372,6 +384,10 @@ namespace Counter_Strike_Server
             }
         }
 
+        /// <summary>
+        /// Check if there is an empty team to stop the party
+        /// </summary>
+        /// <param name="party"></param>
         public static void CheckIfThereIsEmptyTeam(Party party)
         {
             //If there is not enought players to continue the party (if players are in the same team)
@@ -388,6 +404,10 @@ namespace Counter_Strike_Server
             }
         }
 
+        /// <summary>
+        /// Check if teams need to be equilibrated
+        /// </summary>
+        /// <param name="party"></param>
         public static void CheckIfTeamsAreEquilibrated(Party party)
         {
             //If there is enought players to equilibrate the party
@@ -396,6 +416,7 @@ namespace Counter_Strike_Server
                 //Get count
                 int couterTerroristsCount, terroristsCount;
                 TeamManager.CheckTeamCount(party, out terroristsCount, out couterTerroristsCount);
+                //If there are to much difference in the player count
                 if (Math.Abs(couterTerroristsCount - terroristsCount) >= 2)
                 {
                     party.needTeamEquilibration = true;
@@ -461,6 +482,19 @@ namespace Counter_Strike_Server
         }
 
         /// <summary>
+        /// Send name of a client
+        /// </summary>
+        /// <param name="client">Client</param>
+        /// <param name="toHim">Send to name </param>
+        public static void SendName(Client destinator, Client client, bool toHim)
+        {
+            if (!toHim)
+                Call.CreateCall($"SETNAME;{client.id};{client.name}", destinator.clientParty.allConnectedClients, destinator);
+            else
+                Call.CreateCall($"SETNAME;{client.id};{client.name}", destinator);
+        }
+
+        /// <summary>
         /// Send party data to the new client
         /// </summary>
         /// <param name="party">Party</param>
@@ -475,9 +509,9 @@ namespace Counter_Strike_Server
             Call.CreateCall($"SETMAP;{(int)party.mapId}", client);
             Call.CreateCall($"SETMODE;{PartyManager.allPartyModesData.IndexOf(party.partyMode)}", client);
 
-            Call.CreateCall($"SETNAME;{client.id};{client.name}", client.clientParty.allConnectedClients, client);
+            SendName(client, client, false);
             PartyManager.SendVoteResult(party, VoteType.ForceStart);
-            PartyManager.sendPartyRound(client);
+            PartyManager.SendPartyRound(client);
 
 
             if (party.isPrivate)
@@ -503,7 +537,7 @@ namespace Counter_Strike_Server
                 Client client1 = client.clientParty.allConnectedClients[ClientI];
                 if (client1 != client)
                 {
-                    Call.CreateCall($"SETNAME;{client1.id};{client1.name}", client);
+                    SendName(client, client1, true);
                 }
             }
 
@@ -522,7 +556,7 @@ namespace Counter_Strike_Server
                 BombManager.SendWhoHasTheBomb(client);
             }
             PartyManager.SendPartyTimer(party);
-            Call.CreateCall($"ENDUPDATE", client);
+            Call.CreateCall("ENDUPDATE", client);
         }
 
         /// <summary>

@@ -4,8 +4,6 @@
 //
 // This file is part of the server of Counter Strike Nintendo DS Multiplayer Edition (CS:DS)
 
-using System.Diagnostics;
-
 namespace Counter_Strike_Server
 {
     public static class Router
@@ -56,6 +54,10 @@ namespace Counter_Strike_Server
             ENDGAME = 37,
             ENDUPDATE = 38,
             INVTORY = 39,
+            GETBOMB = 40,
+            FRAME = 41,
+            RELOADED = 42,
+            STATUS = 43,
         }
 
         /// <summary>
@@ -66,50 +68,71 @@ namespace Counter_Strike_Server
         public static void RouteData(string[] tempDataSplit, Client client, int dataLenght)
         {
             Party currentParty = client.clientParty;
-            string requestData = tempDataSplit[REQUEST_NAME_INDEX];
+            //string requestData = tempDataSplit[REQUEST_NAME_INDEX];
+            int requestData = int.Parse(tempDataSplit[REQUEST_NAME_INDEX]);
             if (client.checkedKey)
             {
-                if (requestData == "PING")//Securised & Verified
-                {
-                    ConnectionManager.UpdateClientPing(client);
-                }
-                else if (requestData == "WALLHIT")//Securised & Verified
-                {
-                    GunManager.SendWallHit(tempDataSplit[1], tempDataSplit[2], tempDataSplit[3], client);
-                }
-                else if (requestData == "BOMBPLACE")//Securised & Verified
-                {
-                    BombManager.PlaceBomb(client, tempDataSplit[1], tempDataSplit[2], tempDataSplit[3], tempDataSplit[4], false);
-                }
-                else if (requestData == "GETBOMB")//Securised & Verified
-                {
-                    BombManager.GetBomb(client);
-                }
-                else if (requestData == "BOMBPLACING")//Securised & Verified
-                {
-                    BombManager.SendBombPlacing(client);
-                }
-                else if (requestData == "BOMBDEFUSE")//Securised & Verified
-                {
-                    BombManager.DefuseBomb(client);
-                }
-                else if (requestData == "CURGUN")//Verified & Verified
-                {
-                    InventoryManager.SetGun(client, tempDataSplit[1]);
-                }
-                else if (requestData == "LEAVE")//Securised & Verified
-                {
-                    client.NeedRemoveConnection = true;
-                }
-                else if (requestData == "FRAME")//Securised & Verified
+                if (requestData == (int)RequestType.FRAME)//Securised & Verified
                 {
                     client.lastFrameCount = int.Parse(tempDataSplit[1]);
                 }
-                else if (requestData == "RELOADED")//Securised & Verified
+                else if (requestData == (int)RequestType.POS)//Securised & Verified
+                {
+                    PlayerManager.SetPosition(client, tempDataSplit[1], tempDataSplit[2], tempDataSplit[3], tempDataSplit[4], tempDataSplit[5]);
+                }
+                else if (requestData == (int)RequestType.PING)//Securised & Verified
+                {
+                    ConnectionManager.UpdateClientPing(client);
+                }
+                else if (requestData == (int)RequestType.WALLHIT)//Securised & Verified
+                {
+                    GunManager.SendWallHit(tempDataSplit[1], tempDataSplit[2], tempDataSplit[3], client);
+                }
+                else if (requestData == (int)RequestType.SHOOT)//Securised & Verified
+                {
+                    GunManager.SendShoot(client);
+                }
+                else if (requestData == (int)RequestType.HIT)//Securised & Verified
+                {
+                    int hitCount = (dataLenght - 1) / 4;
+                    if (hitCount <= 6)
+                    {
+                        for (int i = 0; i < hitCount; i++)
+                        {
+                            GunManager.MakeHit(client, tempDataSplit[1 + i * 4], tempDataSplit[2 + i * 4], tempDataSplit[3 + i * 4], tempDataSplit[4 + i * 4]);
+                        }
+                        client.cancelNextHit = true;
+                    }
+                }
+                else if (requestData == (int)RequestType.CURGUN)//Verified & Verified
+                {
+                    InventoryManager.SetGun(client, tempDataSplit[1]);
+                }
+                else if (requestData == (int)RequestType.RELOADED)//Securised & Verified
                 {
                     InventoryManager.SendReloaded(client);
                 }
-                else if (requestData == "VOTE")//Securised & Verified
+                else if (requestData == (int)RequestType.BOMBPLACE)//Securised & Verified
+                {
+                    BombManager.PlaceBomb(client, tempDataSplit[1], tempDataSplit[2], tempDataSplit[3], tempDataSplit[4], false);
+                }
+                else if (requestData == (int)RequestType.GETBOMB)//Securised & Verified
+                {
+                    BombManager.GetBomb(client);
+                }
+                else if (requestData == (int)RequestType.BOMBPLACING)//Securised & Verified
+                {
+                    BombManager.SendBombPlacing(client);
+                }
+                else if (requestData == (int)RequestType.BOMBDEFUSE)//Securised & Verified
+                {
+                    BombManager.DefuseBomb(client);
+                }
+                else if (requestData == (int)RequestType.LEAVE)//Securised & Verified
+                {
+                    client.NeedRemoveConnection = true;
+                }
+                else if (requestData == (int)RequestType.VOTE)//Securised & Verified
                 {
                     if (int.Parse(tempDataSplit[1]) == (int)VoteType.ForceStart)
                     {
@@ -117,47 +140,19 @@ namespace Counter_Strike_Server
                         PartyManager.SendVoteResult(currentParty, VoteType.ForceStart);
                     }
                 }
-                else if (requestData == "GRENADE")//Securised & Verified
+                else if (requestData == (int)RequestType.GRENADE)//Securised & Verified
                 {
-                    ShopManager.SendShopConfirm(-1, client.currentGunInInventory, 1, client);
-                    //Replace . to , for float.parse
-                    tempDataSplit[1] = tempDataSplit[1].Replace('.', ',');
-                    tempDataSplit[2] = tempDataSplit[2].Replace('.', ',');
-                    tempDataSplit[3] = tempDataSplit[3].Replace('.', ',');
-                   
-                    GrenadeManager.SendGrenade(client, tempDataSplit[1], tempDataSplit[2], tempDataSplit[3]);
+                    if (!client.isDead)
+                    {
+                        ShopManager.SendShopConfirm(-1, client.currentGunInInventory, 1, client);
+                        GrenadeManager.SendGrenade(client, tempDataSplit[1], tempDataSplit[2], tempDataSplit[3]);
+                    }
                 }
-                else if (requestData == "POS")//Securised & Verified
-                {
-                    PlayerManager.SetPosition(client, tempDataSplit[1], tempDataSplit[2], tempDataSplit[3], tempDataSplit[4], tempDataSplit[5]);
-                }
-                else if (requestData == "SETNAME")//Securised & Verified
+                else if (requestData == (int)RequestType.SETNAME)//Securised & Verified
                 {
                     PlayerManager.SetName(client, tempDataSplit[1]);
                 }
-                else if (requestData == "SHOOT")//Securised & Verified
-                {
-                    GunManager.SendShoot(client);
-                }
-                else if (requestData == "HIT")//Securised & Verified
-                {
-                    int hitCount = (dataLenght - 1) / 4;
-                    if(hitCount <= 6)
-                    {
-                        for (int i = 0; i < hitCount; i++)
-                        {
-                            Debug.WriteLine($"SHOOT {i}");
-                            tempDataSplit[4 + i * 4] = tempDataSplit[4 + i * 4].Replace('.', ',');
-                            GunManager.MakeHit(client, tempDataSplit[1 + i * 4], tempDataSplit[2 + i * 4], tempDataSplit[3 + i * 4], tempDataSplit[4 + i * 4]);
-                        }
-                        client.cancelNextHit = true;
-                    }
-                    else
-                    {
-                        Debug.WriteLine($"SHOOT ERROR");
-                    }
-                }
-                else if (requestData == "PARTY")//Securised & Verified
+                else if (requestData == (int)RequestType.PARTY)//Securised & Verified
                 {
                     NetworkDataManager.JoinType joinType = (NetworkDataManager.JoinType)int.Parse(tempDataSplit[1]);
                     if (joinType == NetworkDataManager.JoinType.JOIN_RANDOM_PARTY) //JOIN RANDOM PARTY
@@ -177,9 +172,9 @@ namespace Counter_Strike_Server
                     {
                         currentParty = client.clientParty;
                         ConnectionManager.SendPartyData(currentParty, client);
-                        if(!currentParty.partyStarted &&  currentParty.allConnectedClients.Count == Settings.maxPlayerPerParty)
+                        if (!currentParty.partyStarted && currentParty.allConnectedClients.Count == Settings.maxPlayerPerParty)
                         {
-                            if(currentParty.partyTimer > PartyManager.startFullPartyWaitingTime)
+                            if (currentParty.partyTimer > PartyManager.startFullPartyWaitingTime)
                             {
                                 currentParty.partyTimer = PartyManager.startFullPartyWaitingTime;
                                 PartyManager.SendPartyTimer(currentParty);
@@ -187,19 +182,19 @@ namespace Counter_Strike_Server
                         }
                     }
                 }
-                else if (requestData == "BUY")//Securised & Verified //A client want to buy a gun
+                else if (requestData == (int)RequestType.BUY)//Securised & Verified //A client want to buy a gun
                 {
                     int elementToBuy = int.Parse(tempDataSplit[1]);
                     ShopManager.Buy(elementToBuy, client);
                 }
-                else if (requestData == "TEAM")//Securised //Update team for a client
+                else if (requestData == (int)RequestType.TEAM)//Securised //Update team for a client
                 {
                     TeamManager.SetTeam(tempDataSplit[1], client);
                 }
             }
             else
             {
-                if (requestData == "KEY")//Securised & Verified
+                if (requestData == (int)RequestType.KEY)//Securised & Verified
                 {
                     //Check the game version first
                     ConnectionManager.CheckPlayerInfo(tempDataSplit[2], tempDataSplit[4], client);
@@ -207,7 +202,7 @@ namespace Counter_Strike_Server
 
                     Security.CheckClientKey(client, int.Parse(tempDataSplit[1]));
                 }
-                else if (requestData == "STATUS")//Securised & Verified
+                else if (requestData == (int)RequestType.STATUS)//Securised & Verified
                 {
                     Api.SendServerStatus(client);
                     client.NeedRemoveConnection = true;

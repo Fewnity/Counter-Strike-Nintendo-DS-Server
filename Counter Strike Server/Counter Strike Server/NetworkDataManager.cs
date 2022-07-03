@@ -56,8 +56,8 @@ namespace Counter_Strike_Server
 
                         Client client = null;
 
-                        //try
-                        //{
+                        try
+                        {
                             client = allClients[i];
                             //If data is incoming
                             if (client.currentClientTcp.Available > 1)
@@ -127,7 +127,7 @@ namespace Counter_Strike_Server
 
                                 continue;
                             }
-                        /*}
+                        }
                         catch (Exception e)//Get error
                         {
                             if (client != null)
@@ -137,7 +137,7 @@ namespace Counter_Strike_Server
                                 PrintError($"Connection {errorClientId} blocked ({e.Message})\n{e.StackTrace.Replace("in ", "\nin ")}");
                                 PrintMessage($"Connection {errorClientId} blocked");
                             }
-                        }*/
+                        }
                     }
                 }
                 //Wait for better CPU performance
@@ -184,7 +184,7 @@ namespace Counter_Strike_Server
                             else if (currentClient.ping != -1)
                             {
                                 //Send new ping request to the client to get a response
-                                Call.CreateCall($"PING;{currentClient.ping}", currentClient);
+                                SendPing(currentClient);
                                 currentClient.lastPing = DateTime.Now;
                                 currentClient.ping = -1;
                             }
@@ -194,6 +194,15 @@ namespace Counter_Strike_Server
                 //Wait 4 seconds
                 Thread.Sleep(4000);
             }
+        }
+
+        /// <summary>
+        /// Send client ping
+        /// </summary>
+        /// <param name="client"></param>
+        public static void SendPing(Client client)
+        {
+            Call.CreateCall($"PING;{client.ping}", client);
         }
 
         /// <summary>

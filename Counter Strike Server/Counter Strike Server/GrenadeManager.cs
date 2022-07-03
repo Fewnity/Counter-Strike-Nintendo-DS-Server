@@ -4,6 +4,8 @@
 //
 // This file is part of the server of Counter Strike Nintendo DS Multiplayer Edition (CS:DS)
 
+using System.Globalization;
+
 namespace Counter_Strike_Server
 {
     static class GrenadeManager
@@ -17,7 +19,7 @@ namespace Counter_Strike_Server
         /// <param name="zDirection">Z direction</param>
         public static void SendGrenade(Client client, string xDirection, string yDirection, string zDirection)
         {
-            SendGrenade(client, float.Parse(xDirection), float.Parse(yDirection), float.Parse(zDirection));
+            SendGrenade(client, float.Parse(xDirection, CultureInfo.InvariantCulture), float.Parse(yDirection, CultureInfo.InvariantCulture), float.Parse(zDirection, CultureInfo.InvariantCulture));
         }
 
         /// <summary>

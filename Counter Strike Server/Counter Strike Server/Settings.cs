@@ -18,6 +18,9 @@ namespace Counter_Strike_Server
 
     public class Settings
     {
+        /// <summary>
+        /// Check if the server is running on Linux
+        /// </summary>
         public static void ReadOsInfo()
         {
             Type t = Type.GetType("Mono.Runtime");
