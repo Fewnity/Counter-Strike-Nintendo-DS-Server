@@ -44,7 +44,15 @@ namespace Counter_Strike_Server
             {
                 lock (ConnectionManager.allClients)
                 {
-                    List<Client> allClients = new List<Client>(ConnectionManager.allClients);
+                    List<Client> allClients = new List<Client>();
+                    try
+                    {
+                        allClients = new List<Client>(ConnectionManager.allClients);
+                    }
+                    catch (Exception e)
+                    {
+                        PrintError($"{e.Message})\n{e.StackTrace.Replace("in ", "\nin ")}");
+                    }
                     int count = allClients.Count;
 
                     //For all client :

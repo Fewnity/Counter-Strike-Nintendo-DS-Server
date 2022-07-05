@@ -288,50 +288,55 @@ namespace Counter_Strike_Server
         public static bool RemoveClient(Client client, bool notifyClients)
         {
             Debug.WriteLine($"Disconnect : {client.id}");
-            //Notify the client of the disconnection
-            if (client.clientParty != null && notifyClients)
+            if (!client.removed)
             {
-                Call.CreateCall($"LEAVE;{client.id}", client.clientParty.allConnectedClients);
-            }
-            string clientIp = "null";
-            //Remove the client connection count of the total connection count of his ip
-            try
-            {
-                clientIp = ((IPEndPoint)client.currentClientTcp.Client.RemoteEndPoint).Address.ToString();
-                connectionCount[connectedIps.IndexOf(clientIp)]--;
-            }
-            catch (Exception e)
-            {
-                Logger.LogErrorInFile($"Not able to reduce client's connection count (client IP : {clientIp}) {e.Message} {e.StackTrace}");
-            }
-
-            //Close stream
-            client.currentClientStream.Close();
-            client.currentClientTcp.Close();
-            allClients.Remove(client);
-
-            //Remove the client from his party
-            if (client.clientParty != null)
-            {
-                client.clientParty.allConnectedClients.Remove(client);
-                PlayerManager.OnPlayerKilled(client.clientParty, null);
-
-                //Update vote
-                if (!client.clientParty.partyStarted)
+                client.removed = true;
+                //Notify the client of the disconnection
+                if (client.clientParty != null && notifyClients)
                 {
-                    PartyManager.SendVoteResult(client.clientParty, VoteType.ForceStart);
+                    Call.CreateCall($"LEAVE;{client.id}", client.clientParty.allConnectedClients);
                 }
-                else
+                string clientIp = "null";
+                //Remove the client connection count of the total connection count of his ip
+                try
                 {
-                    CheckIfTeamsAreEquilibrated(client.clientParty);
-                    CheckIfThereIsEmptyTeam(client.clientParty);
+                    clientIp = ((IPEndPoint)client.currentClientTcp.Client.RemoteEndPoint).Address.ToString();
+                    connectionCount[connectedIps.IndexOf(clientIp)]--;
+                }
+                catch (Exception e)
+                {
+                    Logger.LogErrorInFile($"Not able to reduce client's connection count (client IP : {clientIp}) {e.Message} {e.StackTrace}");
                 }
 
-                lock (PartyManager.allParties)
+                //Close stream
+                client.currentClientStream.Close();
+                client.currentClientTcp.Close();
+                allClients.Remove(client);
+
+                //Remove the client from his party
+                if (client.clientParty != null)
                 {
-                    return PartyManager.CheckEmptyParty(client.clientParty);
+                    client.clientParty.allConnectedClients.Remove(client);
+                    PlayerManager.OnPlayerKilled(client.clientParty, null);
+
+                    //Update vote
+                    if (!client.clientParty.partyStarted)
+                    {
+                        PartyManager.SendVoteResult(client.clientParty, VoteType.ForceStart);
+                    }
+                    else
+                    {
+                        CheckIfTeamsAreEquilibrated(client.clientParty);
+                        CheckIfThereIsEmptyTeam(client.clientParty);
+                    }
+
+                    lock (PartyManager.allParties)
+                    {
+                        return PartyManager.CheckEmptyParty(client.clientParty);
+                    }
                 }
             }
+
             return false;
         }
 

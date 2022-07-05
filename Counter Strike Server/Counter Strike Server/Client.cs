@@ -61,5 +61,6 @@ namespace Counter_Strike_Server
         public int killedFriend = 0;
         public bool cancelNextHit = false;
         public int lastFrameCount = 0;
+        public bool removed = false;
     }
 }
