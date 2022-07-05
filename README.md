@@ -54,3 +54,6 @@ Command example : "status maintenance"
 - [ ] Rework the structure of the server (Avoid static functions, make client.SetName(name) instead of PlayerManager.SetName(client, name)), or something better for clarity.
 - [ ] Improve security
 - [ ] Use the implemented ban system (ban players from IP if they are trying to cheat)
+
+## Security
+Please, if you have found a security vulnerability, contact me here : fewnity@gmail.com
