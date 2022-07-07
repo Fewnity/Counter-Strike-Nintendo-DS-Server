@@ -24,7 +24,7 @@ namespace Counter_Strike_Server
         {
             if (Settings.ENABLE_SECURITY_KEY)
             {
-                client.checkedKey = clientKey != GetKey(client.sentKey);
+                client.checkedKey = clientKey == GetKey(client.sentKey);
                 if (!client.checkedKey)
                 {
                     ConnectionManager.SendError(client, NetworkDataManager.ErrorType.WrongSecurityKey);
