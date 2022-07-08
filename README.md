@@ -16,6 +16,8 @@ This is my first server, so the structure of the code is pretty bad, sorry about
 - Install [Mono](https://www.mono-project.com/)
 - Run the **make.bat** in the project folder
 
+Note : To avoid coding collisions, path finding..., there is an Unity project to export code : https://github.com/Fewnity/Counter-Strike-DS-Unity-Project
+
 ## How to use :
 - Open the **6003** port of your computer and your router
 
