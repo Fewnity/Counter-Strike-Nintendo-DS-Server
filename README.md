@@ -3,7 +3,9 @@
 This Visual Studio C# project is the Counter Strike Nintendo DS server for [CSDS](https://github.com/Fewnity/Counter-Strike-Nintendo-DS), to allow Nintendo DS players to play with each other.
 
 This is my first server, so the structure of the code is pretty bad, sorry about that.
-I think it's a misake to do static functions like PlayerManager.SetName(client, name) instead of client.SetName(name).
+I think it's a misake to do static functions like PlayerManager.SetName(client, name) instead of client.SetName(name).<br>
+
+### Any help is welcome!
 
 ## How to compile :
 
@@ -51,9 +53,12 @@ Command example : "status maintenance"
 - Install the websocket support to your server
 
 ## Todo :
-- [ ] Rework the structure of the server (Avoid static functions, make client.SetName(name) instead of PlayerManager.SetName(client, name)), or something better for clarity.
-- [ ] Improve security
+- [ ] Rework the structure of the server (Avoid static functions, make client.SetName(name) instead of PlayerManager.SetName(client, name)), or something better for clarity
+- [ ] Improve security (more check on player action)
+- [ ] Improve stability (better variable lock between threads)
+- [ ] Improve performance
 - [ ] Use the implemented ban system (ban players from IP if they are trying to cheat)
+- [ ] Add bots
 
 ## Security
 Please, if you have found a security vulnerability, contact me here : fewnity@gmail.com
