@@ -10,8 +10,7 @@ namespace Counter_Strike_Server
 {
     static class Security
     {
-
-        static Random rand = new Random();
+        static readonly Random rand = new ();
 
         /// <summary>
         /// Verify the final client key by generating the final key on the server.
@@ -27,7 +26,7 @@ namespace Counter_Strike_Server
                 client.checkedKey = clientKey == GetKey(client.sentKey);
                 if (!client.checkedKey)
                 {
-                    ConnectionManager.SendError(client, NetworkDataManager.ErrorType.WrongSecurityKey);
+                    client.communicator.SendError(NetworkDataManager.ErrorType.WrongSecurityKey);
                     throw new Exception("Wrong key");
                 }
             }

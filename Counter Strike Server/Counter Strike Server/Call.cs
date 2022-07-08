@@ -5,30 +5,35 @@
 // This file is part of the server of Counter Strike Nintendo DS Multiplayer Edition (CS:DS)
 
 using System;
-using System.Collections.Generic;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Counter_Strike_Server
 {
+    /// <summary>
+    /// Used to send data to clients
+    /// </summary>
     public class Call
     {
-        public Call(string data)
+        private Call(string data)
         {
             this.data = data;
         }
-        public List<Client> allClientsDestination = new List<Client>();
-        public string data;
+        private List<Client> allClientsDestination = new ();
+        private string data;
+
+        #region Call creation
 
         /// <summary>
         /// Create a call to send data to a client
         /// </summary>
         /// <param name="Data">Data to sent</param>
         /// <param name="Destination">Receiver</param>
-        public static void CreateCall(string Data, Client Destination)
+        public static void Create(string Data, Client Destination)
         {
-            Call NewCall = new Call(Data);
+            Call NewCall = new(Data);
             NewCall.allClientsDestination.Add(Destination);
-            SendAfterCreateCall(NewCall);
+            Send(NewCall);
         }
 
         /// <summary>
@@ -36,11 +41,11 @@ namespace Counter_Strike_Server
         /// </summary>
         /// <param name="Data">Data to sent</param>
         /// <param name="Destinations">Receivers</param>
-        public static void CreateCall(string Data, List<Client> Destinations)
+        public static void Create(string Data, List<Client> Destinations)
         {
-            Call NewCall = new Call(Data);
+            Call NewCall = new(Data);
             NewCall.allClientsDestination.AddRange(Destinations);
-            SendAfterCreateCall(NewCall);
+            Send(NewCall);
         }
 
         /// <summary>
@@ -49,58 +54,38 @@ namespace Counter_Strike_Server
         /// <param name="Data">Data to sent</param>
         /// <param name="Destinations">Receivers</param>
         /// <param name="DestinationToRemove">Receiver to remove</param>
-        public static void CreateCall(string Data, List<Client> Destinations, Client DestinationToRemove)
+        public static void Create(string Data, List<Client> Destinations, Client DestinationToRemove)
         {
-            Call NewCall = new Call(Data);
+            Call NewCall = new(Data);
             NewCall.allClientsDestination.AddRange(Destinations);
             NewCall.allClientsDestination.Remove(DestinationToRemove);
-            SendAfterCreateCall(NewCall);
+            Send(NewCall);
         }
+
+        #endregion
 
         /// <summary>
         /// Send the call
         /// </summary>
         /// <param name="callToSend">Call to send</param>
-        public static void SendAfterCreateCall(Call callToSend)
+        private static void Send(Call callToSend)
         {
             byte[] msg = new List<byte>(Encoding.ASCII.GetBytes("{" + callToSend.data + "}")).ToArray();
             int clientCount = callToSend.allClientsDestination.Count;
 
-            for (int i = 0; i < clientCount; i++)
+            for (int clientIndex = 0; clientIndex < clientCount; clientIndex++)
             {
                 //Send packet
                 try
                 {
                     //Create call data byte list
-                    NetworkDataManager.PrintOutData(callToSend.allClientsDestination[i], callToSend.data);
+                    UserInterfaceManager.PrintOutData(callToSend.allClientsDestination[clientIndex], callToSend.data);
 
-                    callToSend.allClientsDestination[i].currentClientStream.Write(msg);
-                    //callToSend.allClientsDestination[i].currentClientStream.Flush();
+                    callToSend.allClientsDestination[clientIndex].currentClientStream.Write(msg);
                 }
                 catch (Exception)
                 {
-
                 }
-            }
-        }
-
-        /// <summary>
-        /// Send a raw call to a client (not recommended)
-        /// </summary>
-        /// <param name="client">Client</param>
-        /// <param name="dataToSend">Data to send</param>
-        public static void SendDirectMessageToClient(Client client, string dataToSend)
-        {
-            byte[] msg = new List<byte>(Encoding.ASCII.GetBytes("{" + dataToSend + "}")).ToArray();
-            try
-            {
-                NetworkDataManager.PrintOutData(client, dataToSend);
-                //Send packet
-                client.currentClientStream.Write(msg);
-            }
-            catch (Exception)
-            {
-
             }
         }
     }

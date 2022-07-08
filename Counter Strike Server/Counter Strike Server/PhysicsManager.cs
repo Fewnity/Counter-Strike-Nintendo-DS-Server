@@ -12,7 +12,7 @@ namespace Counter_Strike_Server
 {
     static class PhysicsManager
     {
-        public static Physics physicsEngine = new Physics();
+        public static Physics physicsEngine = new();
 
         /// <summary>
         /// Check physics for grenades
@@ -38,11 +38,11 @@ namespace Counter_Strike_Server
                                 //For each clients in the party
                                 for (int playerIndex = 0; playerIndex < currentParty.allConnectedClients.Count; playerIndex++)
                                 {
-                                    if (currentParty.allConnectedClients[playerIndex].isDead || currentParty.allConnectedClients[playerIndex].team == teamEnum.SPECTATOR)
+                                    if (currentParty.allConnectedClients[playerIndex].isDead || currentParty.allConnectedClients[playerIndex].team == TeamEnum.SPECTATOR)
                                         continue;
 
                                     //Calculate distance beetwen the grenade and the client
-                                    float Distance = (float)Math.Sqrt(Math.Pow(currentParty.allConnectedClients[playerIndex].Position.x - currentParty.allGrenades[grenadeIndex].physics.x / 2, 2f) + Math.Pow(currentParty.allConnectedClients[playerIndex].Position.y - currentParty.allGrenades[grenadeIndex].physics.y / 2, 2f) + Math.Pow(currentParty.allConnectedClients[playerIndex].Position.z - -(currentParty.allGrenades[grenadeIndex].physics.z / 2), 2f)) / 8096f;
+                                    float Distance = (float)Math.Sqrt(Math.Pow(currentParty.allConnectedClients[playerIndex].position.x - currentParty.allGrenades[grenadeIndex].physics.x / 2, 2f) + Math.Pow(currentParty.allConnectedClients[playerIndex].position.y - currentParty.allGrenades[grenadeIndex].physics.y / 2, 2f) + Math.Pow(currentParty.allConnectedClients[playerIndex].position.z - -(currentParty.allGrenades[grenadeIndex].physics.z / 2), 2f)) / 8096f;
                                     // Set a maximum distance
                                     if (Distance > 4)
                                         Distance = 0;
@@ -51,9 +51,9 @@ namespace Counter_Strike_Server
                                     if (Distance > 0)
                                     {
                                         //Apply damage
-                                        int Damage = (int)Program.map(Distance, 0.3, 4, 100, 0);
+                                        int Damage = (int)Program.Map(Distance, 0.3, 4, 100, 0);
                                         currentParty.allConnectedClients[playerIndex].health -= Damage;
-                                        PlayerManager.CheckAfterDamage(currentParty.allGrenades[grenadeIndex].launcher, currentParty.allConnectedClients[playerIndex], true, true);
+                                        currentParty.allConnectedClients[playerIndex].CheckAfterDamage(currentParty.allGrenades[grenadeIndex].launcher, true, true);
                                     }
                                 }
                                 currentParty.allGrenades.RemoveAt(grenadeIndex);

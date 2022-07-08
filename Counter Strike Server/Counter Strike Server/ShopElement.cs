@@ -20,7 +20,7 @@ namespace Counter_Strike_Server
 
     public class Gun : ShopElement
     {
-        public List<int> killMoneyBonus = new List<int>();
+        public List<int> killMoneyBonus = new();
         public bool isBigGun;
         public int damage;
         public float penetration;
@@ -42,8 +42,8 @@ namespace Counter_Strike_Server
 
     public class Grenade : ShopElement
     {
-        public List<int> killMoneyBonus = new List<int>();
-        public List<int> maxQuantity = new List<int>();
+        public List<int> killMoneyBonus = new ();
+        public List<int> maxQuantity = new();
         public int id;
 
         public Grenade(List<int> killMoneyBonus, List<int> maxQuantity, int price, int id) : base(price)

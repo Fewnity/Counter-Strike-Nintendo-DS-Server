@@ -9,6 +9,9 @@ using System.IO;
 
 namespace Counter_Strike_Server
 {
+    /// <summary>
+    /// Used to log messages in a file for debugging
+    /// </summary>
     public class Logger
     {
         public const string folderName = "cs_log/";

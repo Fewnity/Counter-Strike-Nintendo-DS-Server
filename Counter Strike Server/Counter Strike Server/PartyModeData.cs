@@ -45,12 +45,12 @@ namespace Counter_Strike_Server
         public bool teamDamage;
         public bool noMoneyOnTimeEnd;
 
-        public DateTime trainingTime = new DateTime(2000, 1, 1, 0, 0, 20);
-        public DateTime startRoundWaitingTime = new DateTime(2000, 1, 1, 0, 0, 15);
-        public DateTime roundTime = new DateTime(2000, 1, 1, 0, 2, 15);
-        public DateTime endRoundWaitingTime = new DateTime(2000, 1, 1, 0, 0, 5);
-        public DateTime bombWaitingTime = new DateTime(2000, 1, 1, 0, 0, 45);
-        public DateTime trainingRespawnTimer = new DateTime(2000, 1, 1, 0, 0, 5);
+        public DateTime trainingTime = new(2000, 1, 1, 0, 0, 20);
+        public DateTime startRoundWaitingTime = new(2000, 1, 1, 0, 0, 15);
+        public DateTime roundTime = new(2000, 1, 1, 0, 2, 15);
+        public DateTime endRoundWaitingTime = new(2000, 1, 1, 0, 0, 5);
+        public DateTime bombWaitingTime = new(2000, 1, 1, 0, 0, 45);
+        public DateTime trainingRespawnTimer = new(2000, 1, 1, 0, 0, 5);
 
         //TO DO
         public bool spawnWithArmor;

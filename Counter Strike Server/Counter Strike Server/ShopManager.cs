@@ -11,7 +11,7 @@ namespace Counter_Strike_Server
 {
     static class ShopManager
     {
-        public static List<ShopElement> allShopElements = new List<ShopElement>();
+        public static List<ShopElement> allShopElements = new();
 
         public const int SHOP_GUN_COUNT = 25;
         public const int SHOP_GRENADE_COUNT = 3;
@@ -86,7 +86,7 @@ namespace Counter_Strike_Server
             //Check if the shop element index is valid
             if (elementToBuy < 0 || elementToBuy >= allShopElements.Count)
             {
-                ConnectionManager.SendError(client, NetworkDataManager.ErrorType.Null);
+                client.communicator.SendError(NetworkDataManager.ErrorType.Null);
                 throw new Exception("elementToBuy is out of range.");
             }
 
@@ -106,13 +106,13 @@ namespace Counter_Strike_Server
                         inventoryIndex = 1;
 
                     //If the gun is alreay bought, stop the request
-                    if (client.allGunsInInventory[inventoryIndex] == elementToBuy)
+                    if (client.inventory.allSlots[inventoryIndex] == elementToBuy)
                     {
                         haveError = true;
                     }
                     else
                     {
-                        client.allGunsInInventory[inventoryIndex] = elementToBuy;
+                        client.inventory.allSlots[inventoryIndex] = elementToBuy;
                     }
                 }
                 else if (allShopElements[elementToBuy] is Grenade)  //If the element to buy is a grenade
@@ -120,13 +120,13 @@ namespace Counter_Strike_Server
                     bool foundPlace = false;
 
                     //Try to put the grenade in a free slot for grenade in the inventory
-                    for (int grenadeCheckIndex = InventoryManager.INVENTORY_GRENADES_START_POSITION; grenadeCheckIndex < InventoryManager.INVENTORY_EQUIPMENTS_START_POSITION; grenadeCheckIndex++)
+                    for (int grenadeCheckIndex = Inventory.INVENTORY_GRENADES_START_POSITION; grenadeCheckIndex < Inventory.INVENTORY_EQUIPMENTS_START_POSITION; grenadeCheckIndex++)
                     {
                         //Check if the inventory has a free slot and if the grenade bought count is valid
-                        if (client.allGunsInInventory[grenadeCheckIndex] == -1 && client.grenadeBought[elementToBuy - SHOP_GUN_COUNT] < ((Grenade)allShopElements[elementToBuy]).maxQuantity[PartyManager.allPartyModesData.IndexOf(client.clientParty.partyMode)])
+                        if (client.inventory.allSlots[grenadeCheckIndex] == -1 && client.inventory.grenadeBought[elementToBuy - SHOP_GUN_COUNT] < ((Grenade)allShopElements[elementToBuy]).maxQuantity[PartyManager.allPartyModesData.IndexOf(client.party.partyMode)])
                         {
                             inventoryIndex = grenadeCheckIndex;
-                            client.grenadeBought[elementToBuy - SHOP_GUN_COUNT]++;
+                            client.inventory.grenadeBought[elementToBuy - SHOP_GUN_COUNT]++;
                             foundPlace = true;
                             break;
                         }
@@ -135,7 +135,7 @@ namespace Counter_Strike_Server
                     //If the inventory is not full
                     if (foundPlace)
                     {
-                        client.allGunsInInventory[inventoryIndex] = elementToBuy;
+                        client.inventory.allSlots[inventoryIndex] = elementToBuy;
                     }
                     else
                     {
@@ -147,13 +147,13 @@ namespace Counter_Strike_Server
                     //If the equipment to buy is a defuse kit
                     if (((Equipment)allShopElements[elementToBuy]).equipmentId == 1)
                     {
-                        if (client.haveDefuseKit)
+                        if (client.inventory.haveDefuseKit)
                         {
                             haveError = true;
                         }
                         else
                         {
-                            client.haveDefuseKit = true;
+                            client.inventory.haveDefuseKit = true;
                         }
                     }
                     else if (((Equipment)allShopElements[elementToBuy]).equipmentId == 2) //If the equipment to buy is a kevlar
@@ -167,25 +167,25 @@ namespace Counter_Strike_Server
                             client.armor = 100;
                         }
 
-                        PlayerManager.SendHealth(client);
+                        client.communicator.SendHealth();
                     }
                     else if (((Equipment)allShopElements[elementToBuy]).equipmentId == 3) //If the equipment to buy is a kevlar and helmet
                     {
-                        if (client.haveHelmet)
+                        if (client.inventory.haveHelmet)
                         {
                             haveError = true;
                         }
                         else
                         {
                             client.armor = 100;
-                            client.haveHelmet = true;
+                            client.inventory.haveHelmet = true;
                         }
 
-                        PlayerManager.SendHealth(client);
+                        client.communicator.SendHealth();
                     }
                     else //If the element index is invalid, kick the player
                     {
-                        ConnectionManager.SendError(client, NetworkDataManager.ErrorType.Null);
+                        client.communicator.SendError(NetworkDataManager.ErrorType.Null);
                         throw new Exception("elementToBuy is incorrect.");
                     }
                 }
@@ -196,10 +196,10 @@ namespace Counter_Strike_Server
 
                     if (inventoryIndex != -1)//Place found for the gun or grenade
                     {
-                        client.allGunsInInventory[inventoryIndex] = elementToBuy;
-                        if(inventoryIndex == 1 || inventoryIndex== 2)
+                        client.inventory.allSlots[inventoryIndex] = elementToBuy;
+                        if (inventoryIndex == 1 || inventoryIndex == 2)
                         {
-                            InventoryManager.ResetGunAmmo(client, inventoryIndex);
+                            client.inventory.ResetGunAmmo(inventoryIndex);
                         }
                         SendShopConfirm(elementToBuy, inventoryIndex, 1, client);
                     }
@@ -209,20 +209,17 @@ namespace Counter_Strike_Server
                     }
 
                     client.money -= allShopElements[elementToBuy].price;
-                    InventoryManager.SendClientInventoryToClients(client);
+                    client.communicator.SendClientInventoryToClients();
                 }
                 else //Send bad result
                     SendShopConfirm(elementToBuy, 0, 0, client);
-
-                //Actualise money to client
-                MoneyManager.SendMoney(client);
             }
             else//Send bad result
             {
-                //Actualise money to client
-                MoneyManager.SendMoney(client);
                 SendShopConfirm(elementToBuy, 0, 0, client);
             }
+            //Actualise money to client
+            client.communicator.SendMoney();
         }
 
         /// <summary>
@@ -234,7 +231,7 @@ namespace Counter_Strike_Server
         /// <param name="client">Client</param>
         public static void SendShopConfirm(int elementToBuy, int inventoryIndex, int result, Client client)
         {
-            Call.CreateCall($"CONFIRM;{0};{elementToBuy};{inventoryIndex};{result}", client);
+            Call.Create($"CONFIRM;{0};{elementToBuy};{inventoryIndex};{result}", client);
         }
     }
 }

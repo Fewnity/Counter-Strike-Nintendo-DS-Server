@@ -67,8 +67,7 @@ namespace Counter_Strike_Server
         /// <param name="client">Client who send the request</param>
         public static void RouteData(string[] tempDataSplit, Client client, int dataLenght)
         {
-            Party currentParty = client.clientParty;
-            //string requestData = tempDataSplit[REQUEST_NAME_INDEX];
+            Party currentParty = client.party;
             int requestData = int.Parse(tempDataSplit[REQUEST_NAME_INDEX]);
             if (client.checkedKey)
             {
@@ -78,19 +77,19 @@ namespace Counter_Strike_Server
                 }
                 else if (requestData == (int)RequestType.POS)//Securised & Verified
                 {
-                    PlayerManager.SetPosition(client, tempDataSplit[1], tempDataSplit[2], tempDataSplit[3], tempDataSplit[4], tempDataSplit[5]);
+                    client.SetPosition(tempDataSplit[1], tempDataSplit[2], tempDataSplit[3], tempDataSplit[4], tempDataSplit[5]);
                 }
                 else if (requestData == (int)RequestType.PING)//Securised & Verified
                 {
-                    ConnectionManager.UpdateClientPing(client);
+                    client.UpdateClientPing();
                 }
                 else if (requestData == (int)RequestType.WALLHIT)//Securised & Verified
                 {
-                    GunManager.SendWallHit(tempDataSplit[1], tempDataSplit[2], tempDataSplit[3], client);
+                    client.communicator.SendWallHit(tempDataSplit[1], tempDataSplit[2], tempDataSplit[3]);
                 }
                 else if (requestData == (int)RequestType.SHOOT)//Securised & Verified
                 {
-                    GunManager.SendShoot(client);
+                    client.communicator.SendShoot();
                 }
                 else if (requestData == (int)RequestType.HIT)//Securised & Verified
                 {
@@ -99,34 +98,34 @@ namespace Counter_Strike_Server
                     {
                         for (int i = 0; i < hitCount; i++)
                         {
-                            GunManager.MakeHit(client, tempDataSplit[1 + i * 4], tempDataSplit[2 + i * 4], tempDataSplit[3 + i * 4], tempDataSplit[4 + i * 4]);
+                            client.MakeHit(tempDataSplit[1 + i * 4], tempDataSplit[2 + i * 4], tempDataSplit[3 + i * 4], tempDataSplit[4 + i * 4]);
                         }
                         client.cancelNextHit = true;
                     }
                 }
                 else if (requestData == (int)RequestType.CURGUN)//Verified & Verified
                 {
-                    InventoryManager.SetGun(client, tempDataSplit[1]);
+                    client.inventory.SetCurrentSlot(tempDataSplit[1]);
                 }
                 else if (requestData == (int)RequestType.RELOADED)//Securised & Verified
                 {
-                    InventoryManager.SendReloaded(client);
+                    client.communicator.SendReloaded();
                 }
                 else if (requestData == (int)RequestType.BOMBPLACE)//Securised & Verified
                 {
-                    BombManager.PlaceBomb(client, tempDataSplit[1], tempDataSplit[2], tempDataSplit[3], tempDataSplit[4], false);
+                    client.PlaceBomb(tempDataSplit[1], tempDataSplit[2], tempDataSplit[3], tempDataSplit[4], false);
                 }
                 else if (requestData == (int)RequestType.GETBOMB)//Securised & Verified
                 {
-                    BombManager.GetBomb(client);
+                    client.GetBomb();
                 }
                 else if (requestData == (int)RequestType.BOMBPLACING)//Securised & Verified
                 {
-                    BombManager.SendBombPlacing(client);
+                    client.communicator.SendBombPlacing();
                 }
                 else if (requestData == (int)RequestType.BOMBDEFUSE)//Securised & Verified
                 {
-                    BombManager.DefuseBomb(client);
+                    client.DefuseBomb();
                 }
                 else if (requestData == (int)RequestType.LEAVE)//Securised & Verified
                 {
@@ -137,27 +136,27 @@ namespace Counter_Strike_Server
                     if (int.Parse(tempDataSplit[1]) == (int)VoteType.ForceStart)
                     {
                         client.wantStartNow = true;
-                        PartyManager.SendVoteResult(currentParty, VoteType.ForceStart);
+                        currentParty.communicator.SendVoteResult(VoteType.ForceStart);
                     }
                 }
                 else if (requestData == (int)RequestType.GRENADE)//Securised & Verified
                 {
                     if (!client.isDead)
                     {
-                        ShopManager.SendShopConfirm(-1, client.currentGunInInventory, 1, client);
-                        GrenadeManager.SendGrenade(client, tempDataSplit[1], tempDataSplit[2], tempDataSplit[3]);
+                        ShopManager.SendShopConfirm(-1, client.inventory.currentSlot, 1, client);
+                        client.communicator.SendGrenade(tempDataSplit[1], tempDataSplit[2], tempDataSplit[3]);
                     }
                 }
                 else if (requestData == (int)RequestType.SETNAME)//Securised & Verified
                 {
-                    PlayerManager.SetName(client, tempDataSplit[1]);
+                    client.SetName(tempDataSplit[1]);
                 }
                 else if (requestData == (int)RequestType.PARTY)//Securised & Verified
                 {
                     NetworkDataManager.JoinType joinType = (NetworkDataManager.JoinType)int.Parse(tempDataSplit[1]);
                     if (joinType == NetworkDataManager.JoinType.JOIN_RANDOM_PARTY) //JOIN RANDOM PARTY
                     {
-                        PartyManager.PutClientIntoParty(client, "");
+                        client.PutClientIntoParty("");
                     }
                     else if (joinType == NetworkDataManager.JoinType.CREATE_PRIVATE_PARTY) //CREATE PRIVATE PARTY
                     {
@@ -165,19 +164,19 @@ namespace Counter_Strike_Server
                     }
                     else if (joinType == NetworkDataManager.JoinType.JOIN_PRIVATE_PARTY)
                     {
-                        PartyManager.PutClientIntoParty(client, tempDataSplit[2]);
+                        client.PutClientIntoParty(tempDataSplit[2]);
                     }
 
-                    if (client.clientParty != null)
+                    if (client.party != null)
                     {
-                        currentParty = client.clientParty;
-                        ConnectionManager.SendPartyData(currentParty, client);
+                        currentParty = client.party;
+                        client.communicator.SendPartyData();
                         if (!currentParty.partyStarted && currentParty.allConnectedClients.Count == Settings.maxPlayerPerParty)
                         {
                             if (currentParty.partyTimer > PartyManager.startFullPartyWaitingTime)
                             {
                                 currentParty.partyTimer = PartyManager.startFullPartyWaitingTime;
-                                PartyManager.SendPartyTimer(currentParty);
+                                currentParty.communicator.SendPartyTimer();
                             }
                         }
                     }
@@ -189,7 +188,7 @@ namespace Counter_Strike_Server
                 }
                 else if (requestData == (int)RequestType.TEAM)//Securised //Update team for a client
                 {
-                    TeamManager.SetTeam(tempDataSplit[1], client);
+                    client.SetTeam(tempDataSplit[1]);
                 }
             }
             else
@@ -197,8 +196,8 @@ namespace Counter_Strike_Server
                 if (requestData == (int)RequestType.KEY)//Securised & Verified
                 {
                     //Check the game version first
-                    ConnectionManager.CheckPlayerInfo(tempDataSplit[2], tempDataSplit[4], client);
-                    PlayerManager.SetName(client, tempDataSplit[3]);
+                    client.CheckPlayerInfo(tempDataSplit[2], tempDataSplit[4]);
+                    client.SetName(tempDataSplit[3]);
 
                     Security.CheckClientKey(client, int.Parse(tempDataSplit[1]));
                 }

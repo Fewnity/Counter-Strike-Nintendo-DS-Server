@@ -68,12 +68,11 @@ namespace Counter_Strike_Server
         {
             public NE_Physics physics;
             public Client launcher;
-            //public Party party;
             public DateTime timer;
             public int id;
         }
 
-        public List<NE_Physics> allStaticPhysics = new List<NE_Physics>();
+        public List<NE_Physics> allStaticPhysics = new();
         public int NE_MIN_BOUNCE_SPEED = (int)(0.01f * (1 << 12));
 
 
@@ -85,13 +84,13 @@ namespace Counter_Strike_Server
             AddAllStairs();
         }
 
-        public Grenade CreateGrenade(Client launcher, int id, float xDirection, float yDirection, float zDirection)
+        public static Grenade CreateGrenade(Client launcher, int id, float xDirection, float yDirection, float zDirection)
         {
-            Grenade newGrenade = new Grenade();
+            Grenade newGrenade = new();
             newGrenade.launcher = launcher;
             newGrenade.id = id;
             newGrenade.timer = DateTime.Now.AddSeconds(4);
-            NE_Physics newPhysics = new NE_Physics();
+            NE_Physics newPhysics = new();
             newGrenade.physics = newPhysics;
             newPhysics.oncollision = NE_OnCollision.NE_ColBounce;
 
@@ -103,16 +102,16 @@ namespace Counter_Strike_Server
             newPhysics.yspeed = (int)(yDirection * 2200);
             newPhysics.zspeed = (int)(-zDirection * 2200);
 
-            newPhysics.x = (launcher.Position.x * 2) + (int)(xDirection * 4096);
-            newPhysics.y = (launcher.Position.y * 2) + (int)(0.7f * 8192 * 2) + (int)(yDirection * 4096);
-            newPhysics.z = (-launcher.Position.z * 2) + (int)(-zDirection * 4096);
+            newPhysics.x = (launcher.position.x * 2) + (int)(xDirection * 4096);
+            newPhysics.y = (launcher.position.y * 2) + (int)(0.7f * 8192 * 2) + (int)(yDirection * 4096);
+            newPhysics.z = (-launcher.position.z * 2) + (int)(-zDirection * 4096);
 
             newPhysics.friction = (int)(1.5f * (1 << 12));
             newPhysics.gravity = (int)(0.0065 * (1 << 12));
 
             newPhysics.keptpercent = 30;
             NE_PhysicsEnable(newPhysics, true);
-            launcher.clientParty.allGrenades.Add(newGrenade);
+            launcher.party.allGrenades.Add(newGrenade);
             return newGrenade;
         }
 
@@ -129,7 +128,7 @@ namespace Counter_Strike_Server
         /// <param name="index">Unsed</param>
         public void CreateWall(double xPos, double yPos, double zPos, double xSize, double ySize, double zSize, int Zone, int index)
         {
-            NE_Physics newPhysics = new NE_Physics();
+            NE_Physics newPhysics = new();
 
             newPhysics.oncollision = NE_OnCollision.NE_ColBounce;
             NE_PhysicsSetSizeI(newPhysics, (int)(xSize * 8192), (int)(ySize * 8192), (int)(zSize * 8192));
@@ -153,51 +152,51 @@ namespace Counter_Strike_Server
                 NE_PhysicsDelete(allStaticPhysics[i]);
         }
 
-        public void NE_PhysicsSetSpeedI(NE_Physics pointer, int x, int y, int z)
+        public static void NE_PhysicsSetSpeedI(NE_Physics pointer, int x, int y, int z)
         {
             pointer.xspeed = x;
             pointer.yspeed = y;
             pointer.zspeed = z;
         }
 
-        public void NE_PhysicsSetSizeI(NE_Physics pointer, int x, int y, int z)
+        public static void NE_PhysicsSetSizeI(NE_Physics pointer, int x, int y, int z)
         {
             pointer.xsize = x;
             pointer.ysize = y;
             pointer.zsize = z;
         }
 
-        public void NE_PhysicsSetGravityI(NE_Physics pointer, int gravity)
+        public static void NE_PhysicsSetGravityI(NE_Physics pointer, int gravity)
         {
             pointer.gravity = gravity;
         }
 
-        public void NE_PhysicsSetFrictionI(NE_Physics pointer, int friction)
+        public static void NE_PhysicsSetFrictionI(NE_Physics pointer, int friction)
         {
             pointer.friction = friction;
         }
 
-        public void NE_PhysicsSetBounceEnergy(NE_Physics pointer, int percent)
+        public static void NE_PhysicsSetBounceEnergy(NE_Physics pointer, int percent)
         {
             pointer.keptpercent = percent;
         }
 
-        public void NE_PhysicsEnable(NE_Physics pointer, bool value)
+        public static void NE_PhysicsEnable(NE_Physics pointer, bool value)
         {
             pointer.enabled = value;
         }
 
-        public void NE_PhysicsSetGroup(NE_Physics physics, int group, int index)
+        public static void NE_PhysicsSetGroup(NE_Physics physics, int group, int index)
         {
             physics.physicsgroup[index] = group;
         }
 
-        public void NE_PhysicsOnCollision(NE_Physics physics, NE_OnCollision action)
+        public static void NE_PhysicsOnCollision(NE_Physics physics, NE_OnCollision action)
         {
             physics.oncollision = action;
         }
 
-        public bool NE_PhysicsIsColliding(NE_Physics pointer)
+        public static bool NE_PhysicsIsColliding(NE_Physics pointer)
         {
             return pointer.iscolliding;
         }
@@ -229,9 +228,9 @@ namespace Counter_Strike_Server
             // Now, let's move the object
 
             // Used in collision checking to simplify the code
-            int posx = 0, posy = 0, posz = 0;
+            int posx, posy, posz;
             // Position before movement
-            int bposx = 0, bposy = 0, bposz = 0;
+            int bposx, bposy, bposz;
 
             bposx = pointer.x;
             bposy = pointer.y;
@@ -419,16 +418,16 @@ namespace Counter_Strike_Server
             }
         }
 
-        public bool NE_PhysicsCheckCollision(NE_Physics pointer1, NE_Physics pointer2)
+        public static bool NE_PhysicsCheckCollision(NE_Physics pointer1, NE_Physics pointer2)
         {
             //Get coordinates
-            int posx = 0, posy = 0, posz = 0;
+            int posx, posy, posz;
 
             posx = pointer1.x;
             posy = pointer1.y;
             posz = pointer1.z;
 
-            int otherposx = 0, otherposy = 0, otherposz = 0;
+            int otherposx, otherposy, otherposz;
 
             otherposx = pointer2.x;
             otherposy = pointer2.y;
@@ -443,16 +442,6 @@ namespace Counter_Strike_Server
             }
 
             return false;
-        }
-
-        public float map(float x, float in_min, float in_max, float out_min, float out_max)
-        {
-            return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-        }
-
-        public int mapInt(int x, int in_min, int in_max, int out_min, int out_max)
-        {
-            return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
         }
 
         public void AddAllWalls()
@@ -705,20 +694,20 @@ namespace Counter_Strike_Server
             CreateStairs(-23.845, -22.226, -26.263, -25.927, 6.052, 6.439, 0, 30);
         }
 
-        public List<Stairs> AllStairsRef = new List<Stairs>();
+        public List<Stairs> AllStairsRef = new();
 
         public void CreateStairs(double xSideA, double xSideB, double zSideA, double zSideB, double startY, double endY, int direction, int index)
         {
-            Stairs newStairs = new Stairs();
-            newStairs.xSideA = (float)xSideA;
-            newStairs.xSideB = (float)xSideB;
-            //newStairs.zSideA = -(float)zSideA;
-            //newStairs.zSideB = -(float)zSideB;
-            newStairs.zSideA = -(float)zSideB;
-            newStairs.zSideB = -(float)zSideA;
-            newStairs.startY = (float)startY;
-            newStairs.endY = (float)endY;
-            newStairs.direction = direction;
+            Stairs newStairs = new()
+            {
+                xSideA = (float)xSideA,
+                xSideB = (float)xSideB,
+                zSideA = -(float)zSideB,
+                zSideB = -(float)zSideA,
+                startY = (float)startY,
+                endY = (float)endY,
+                direction = direction
+            };
             AllStairsRef.Add(newStairs);
         }
 
@@ -732,22 +721,22 @@ namespace Counter_Strike_Server
 
                 if (zpos >= AllStairsRef[i].zSideA && zpos <= AllStairsRef[i].zSideB && xpos >= AllStairsRef[i].xSideA && xpos <= AllStairsRef[i].xSideB)
                 {
-                    float yVal = 0;
+                    float yVal;
                     if (AllStairsRef[i].direction == 0)
                     {
-                        yVal = map(zpos, AllStairsRef[i].zSideA, AllStairsRef[i].zSideB, AllStairsRef[i].endY, AllStairsRef[i].startY);
+                        yVal = Program.Map(zpos, AllStairsRef[i].zSideA, AllStairsRef[i].zSideB, AllStairsRef[i].endY, AllStairsRef[i].startY);
                     }
                     else if (AllStairsRef[i].direction == 1)
                     {
-                        yVal = map(xpos, AllStairsRef[i].xSideA, AllStairsRef[i].xSideB, AllStairsRef[i].endY, AllStairsRef[i].startY);
+                        yVal = Program.Map(xpos, AllStairsRef[i].xSideA, AllStairsRef[i].xSideB, AllStairsRef[i].endY, AllStairsRef[i].startY);
                     }
                     else if (AllStairsRef[i].direction == 2)
                     {
-                        yVal = map(zpos, AllStairsRef[i].zSideA, AllStairsRef[i].zSideB, AllStairsRef[i].startY, AllStairsRef[i].endY);
+                        yVal = Program.Map(zpos, AllStairsRef[i].zSideA, AllStairsRef[i].zSideB, AllStairsRef[i].startY, AllStairsRef[i].endY);
                     }
                     else
                     {
-                        yVal = map(xpos, AllStairsRef[i].xSideA, AllStairsRef[i].xSideB, AllStairsRef[i].startY, AllStairsRef[i].endY);
+                        yVal = Program.Map(xpos, AllStairsRef[i].xSideA, AllStairsRef[i].xSideB, AllStairsRef[i].startY, AllStairsRef[i].endY);
                     }
 
                     if (ypos < yVal && yVal - ypos < 3)

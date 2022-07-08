@@ -43,6 +43,6 @@ namespace Counter_Strike_Server
         public static bool ENABLE_LOGGING = true;
         public static ServerStatus serverStatus = ServerStatus.ONLINE;
         public const int maxPlayerPerParty = 6;// DEFAULT 6 (MAX 6)
-        public static List<string> GAME_VERSIONS = new List<string>{ "1.0.0" };
+        public static List<string> GAME_VERSIONS = new() { "1.0.0" };
     }
 }

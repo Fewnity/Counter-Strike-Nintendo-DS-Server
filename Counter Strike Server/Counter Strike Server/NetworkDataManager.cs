@@ -5,13 +5,13 @@
 // This file is part of the server of Counter Strike Nintendo DS Multiplayer Edition (CS:DS)
 
 using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace Counter_Strike_Server
 {
-    static class NetworkDataManager
+    public static class NetworkDataManager
     {
         public enum ErrorType
         {
@@ -44,15 +44,16 @@ namespace Counter_Strike_Server
             {
                 lock (ConnectionManager.allClients)
                 {
-                    List<Client> allClients = new List<Client>();
+                    List<Client> allClients = new();
                     try
                     {
                         allClients = new List<Client>(ConnectionManager.allClients);
                     }
                     catch (Exception e)
                     {
-                        PrintError($"{e.Message})\n{e.StackTrace.Replace("in ", "\nin ")}");
+                        UserInterfaceManager.PrintError($"{e.Message})\n{e.StackTrace.Replace("in ", "\nin ")}");
                     }
+                    //List<Client> allClients = new List<Client>(ConnectionManager.allClients);
                     int count = allClients.Count;
 
                     //For all client :
@@ -79,7 +80,7 @@ namespace Counter_Strike_Server
                                 //translate data bytes to string
                                 client.data += Encoding.UTF8.GetString(bytes);
 
-                                PrintInData(client, client.data);
+                                UserInterfaceManager.PrintInData(client, client.data);
 
                                 do
                                 {
@@ -130,8 +131,8 @@ namespace Counter_Strike_Server
                             if (client.NeedRemoveConnection)
                             {
                                 int removedClientId = client.id;
-                                PrintMessage($"Client {removedClientId} disconnected");
-                                ConnectionManager.RemoveClient(client, true);
+                                UserInterfaceManager.PrintMessage($"Client {removedClientId} disconnected");
+                                client.RemoveClient(true);
 
                                 continue;
                             }
@@ -141,9 +142,9 @@ namespace Counter_Strike_Server
                             if (client != null)
                             {
                                 int errorClientId = client.id;
-                                ConnectionManager.RemoveClient(client, true);
-                                PrintError($"Connection {errorClientId} blocked ({e.Message})\n{e.StackTrace.Replace("in ", "\nin ")}");
-                                PrintMessage($"Connection {errorClientId} blocked");
+                                client.RemoveClient(true);
+                                UserInterfaceManager.PrintError($"Connection {errorClientId} blocked ({e.Message})\n{e.StackTrace.Replace("in ", "\nin ")}");
+                                UserInterfaceManager.PrintMessage($"Connection {errorClientId} blocked");
                             }
                         }
                     }
@@ -163,8 +164,15 @@ namespace Counter_Strike_Server
                 //For each party
                 lock (ConnectionManager.allClients)
                 {
-                    //List<Client> allClients = ConnectionManager.allClients;
-                    List<Client> allClients = new List<Client>(ConnectionManager.allClients);
+                    List<Client> allClients = new();
+                    try
+                    {
+                        allClients = new List<Client>(ConnectionManager.allClients);
+                    }
+                    catch (Exception e)
+                    {
+                        UserInterfaceManager.PrintError($"{e.Message})\n{e.StackTrace.Replace("in ", "\nin ")}");
+                    }
                     int count = allClients.Count;
                     for (int clientIndex = 0; clientIndex < count; clientIndex++)
                     {
@@ -185,14 +193,14 @@ namespace Counter_Strike_Server
                             {
                                 //Remove client
                                 int removedClientId = currentClient.id;
-                                ConnectionManager.RemoveClient(currentClient, true);
+                                currentClient.RemoveClient(true);
 
-                                PrintMessage($"Connection {removedClientId} blocked (Timeout)");
+                                UserInterfaceManager.PrintMessage($"Connection {removedClientId} blocked (Timeout)");
                             }
                             else if (currentClient.ping != -1)
                             {
                                 //Send new ping request to the client to get a response
-                                SendPing(currentClient);
+                                currentClient.communicator.SendPing();
                                 currentClient.lastPing = DateTime.Now;
                                 currentClient.ping = -1;
                             }
@@ -203,90 +211,5 @@ namespace Counter_Strike_Server
                 Thread.Sleep(4000);
             }
         }
-
-        /// <summary>
-        /// Send client ping
-        /// </summary>
-        /// <param name="client"></param>
-        public static void SendPing(Client client)
-        {
-            Call.CreateCall($"PING;{client.ping}", client);
-        }
-
-        /// <summary>
-        /// Print a message in the console
-        /// </summary>
-        /// <param name="data">Message</param>
-        public static void PrintMessage(string data)
-        {
-            if (!Settings.ENABLE_CONSOLE_PRINT)
-                return;//Disable text to improve performance
-
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine($"[{DateTime.Now}] - {data}");
-        }
-
-        /// <summary>
-        /// Print incoming data in the console
-        /// </summary>
-        /// <param name="data">Received data</param>
-        public static void PrintInData(Client client, string data)
-        {
-            if (!Settings.ENABLE_CONSOLE_PRINT)
-                return;//Disable text to improve performance
-
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine($"[{DateTime.Now}] {client.id} -> {data}");
-        }
-
-        /// <summary>
-        /// Print sent data
-        /// </summary>
-        /// <param name="data">Sent data</param>
-        public static void PrintOutData(Client client, string data)
-        {
-            if (!Settings.ENABLE_CONSOLE_PRINT)
-                return;//Disable text to improve performance
-
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"[{DateTime.Now}] {client.id} <- {data}");
-        }
-
-        /// <summary>
-        /// Print error
-        /// </summary>
-        /// <param name="errorText">Error text</param>
-        public static void PrintError(string errorText)
-        {
-            Logger.LogErrorInFile(errorText);
-
-            if (!Settings.ENABLE_CONSOLE_PRINT)
-                return;//Disable text to improve performance
-
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"[{DateTime.Now}] {errorText}\n");
-        }
-
-        /// <summary>
-        /// Find a client by his id
-        /// </summary>
-        /// <param name="party">Party</param>
-        /// <param name="PlayerId">Client id</param>
-        /// <returns>Client or null if not found</returns>
-        public static Client FindClientById(Party party, int PlayerId)
-        {
-            Client FoundClient = null;
-            for (int ClientIndex = 0; ClientIndex < party.allConnectedClients.Count; ClientIndex++)
-            {
-                if (party.allConnectedClients[ClientIndex].id == PlayerId)//If current client has the same id
-                {
-                    //Get this client
-                    FoundClient = party.allConnectedClients[ClientIndex];
-                    break;
-                }
-            }
-            return FoundClient;
-        }
-
     }
 }
