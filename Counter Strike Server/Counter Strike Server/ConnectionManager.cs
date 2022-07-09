@@ -120,7 +120,7 @@ namespace Counter_Strike_Server
                 try
                 {
                     NewClient.ip = ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
-                    if (string.IsNullOrWhiteSpace(NewClient.ip))
+                    if (string.IsNullOrWhiteSpace(NewClient.ip) || NewClient.ip == "null")
                     {
                         NewClient.communicator.SendError(NetworkDataManager.ErrorType.Null);
                         throw new Exception("Ip empty");

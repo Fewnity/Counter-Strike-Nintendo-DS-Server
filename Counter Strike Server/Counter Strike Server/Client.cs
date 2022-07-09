@@ -253,7 +253,8 @@ namespace Counter_Strike_Server
                 //Remove the client connection count of the total connection count of his ip
                 try
                 {
-                    ConnectionManager.connectionCount[ConnectionManager.connectedIps.IndexOf(ip)]--;
+                    if (!string.IsNullOrWhiteSpace(ip) || ip != "null")
+                        ConnectionManager.connectionCount[ConnectionManager.connectedIps.IndexOf(ip)]--;
                 }
                 catch (Exception e)
                 {
